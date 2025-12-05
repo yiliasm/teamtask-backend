@@ -3,17 +3,18 @@ import pool from "../db.js";
 
 const router = express.Router();
 
-// creating a task
+//create task
 router.post("/", async (req, res) => {
   try {
     const { title, description, due_date, created_by, assigned_to } = req.body;
 
-    if (!title || !created_by || !assigned_to)
+    if (!title || !created_by || !assigned_to) {
       return res.status(400).json({ message: "Missing required fields" });
+    }
 
     const [result] = await pool.query(
-      `INSERT INTO tasks (title, description, due_date, created_by, assigned_to)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (title, description, due_date, created_by, assigned_to, status)
+       VALUES (?, ?, ?, ?, ?, 'NOT_STARTED')`,
       [title, description, due_date, created_by, assigned_to]
     );
 
@@ -27,7 +28,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// get tasks for a user
+//get tasks by user
 router.get("/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -44,39 +45,7 @@ router.get("/:userId", async (req, res) => {
   }
 });
 
-// update a task
-router.put("/:taskId", async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    const { title, description, due_date, status } = req.body;
-
-    const [result] = await pool.query(
-      `UPDATE tasks SET title=?, description=?, due_date=?, status=? WHERE id=?`,
-      [title, description, due_date, status, taskId]
-    );
-
-    res.json({ message: "Task updated successfully" });
-  } catch (err) {
-    console.error("Update task error:", err.message);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// delete a task
-router.delete("/:taskId", async (req, res) => {
-  try {
-    const { taskId } = req.params;
-
-    await pool.query(`DELETE FROM tasks WHERE id=?`, [taskId]);
-
-    res.json({ message: "Task deleted successfully" });
-  } catch (err) {
-    console.error("Delete task error:", err.message);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// update ONLY status
+//update before PUT route
 router.patch("/:taskId/status", async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -99,5 +68,36 @@ router.patch("/:taskId/status", async (req, res) => {
   }
 });
 
+//update task
+router.put("/:taskId", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { title, description, due_date, status } = req.body;
+
+    await pool.query(
+      `UPDATE tasks SET title=?, description=?, due_date=?, status=? WHERE id=?`,
+      [title, description, due_date, status, taskId]
+    );
+
+    res.json({ message: "Task updated successfully" });
+  } catch (err) {
+    console.error("Update task error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//delte task
+router.delete("/:taskId", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    await pool.query(`DELETE FROM tasks WHERE id=?`, [taskId]);
+
+    res.json({ message: "Task deleted successfully" });
+  } catch (err) {
+    console.error("Delete task error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 export default router;
