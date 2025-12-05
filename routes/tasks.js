@@ -3,7 +3,7 @@ import pool from "../db.js";
 
 const router = express.Router();
 
-//create task
+//create tasks
 router.post("/", async (req, res) => {
   try {
     const { title, description, due_date, created_by, assigned_to } = req.body;
@@ -28,24 +28,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-//get tasks by user
-router.get("/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const [tasks] = await pool.query(
-      `SELECT * FROM tasks WHERE created_by = ? OR assigned_to = ?`,
-      [userId, userId]
-    );
-
-    res.json(tasks);
-  } catch (err) {
-    console.error("Get tasks error:", err.message);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-//update before PUT route
+//status update
 router.patch("/:taskId/status", async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -68,7 +51,7 @@ router.patch("/:taskId/status", async (req, res) => {
   }
 });
 
-//update task
+//update tasks
 router.put("/:taskId", async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -86,7 +69,7 @@ router.put("/:taskId", async (req, res) => {
   }
 });
 
-//delte task
+//delete tasks
 router.delete("/:taskId", async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -96,6 +79,23 @@ router.delete("/:taskId", async (req, res) => {
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
     console.error("Delete task error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//get tasks
+router.get("/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const [tasks] = await pool.query(
+      `SELECT * FROM tasks WHERE created_by = ? OR assigned_to = ?`,
+      [userId, userId]
+    );
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Get tasks error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
