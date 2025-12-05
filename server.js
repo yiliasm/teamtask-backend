@@ -11,13 +11,20 @@ import emailTestRoutes from "./routes/emailTest.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: "https://white-ocean-00157311e.3.azurestaticapps.net/",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
+
 app.use("/api/auth", authRoutes);
 app.use("/api/email", emailTestRoutes);
 app.use("/api/users", userRoutes);
 
-// verify database connection
+// health check route
 app.get("/api/health", async (_, res) => {
   try {
     const [rows] = await pool.query("SELECT 1+1 AS ok");
@@ -27,6 +34,17 @@ app.get("/api/health", async (_, res) => {
   }
 });
 
-const PORT = process.env.PORT || 4000;
+// main tasks route
 app.use("/api/tasks", taskRoutes);
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+
+// azure requirement
+const PORT = process.env.PORT || 4000;
+
+// azure health route
+app.get("/", (req, res) => {
+  res.send("TeamTask API Running");
+});
+
+app.listen(PORT, () => 
+  console.log(`✅ Server running on port ${PORT}`)
+);
