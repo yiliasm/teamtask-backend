@@ -3,31 +3,6 @@ import pool from "../db.js";
 
 const router = express.Router();
 
-//create tasks
-router.post("/", async (req, res) => {
-  try {
-    const { title, description, due_date, created_by, assigned_to } = req.body;
-
-    if (!title || !created_by || !assigned_to) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    const [result] = await pool.query(
-      `INSERT INTO tasks (title, description, due_date, created_by, assigned_to, status)
-       VALUES (?, ?, ?, ?, ?, 'NOT_STARTED')`,
-      [title, description, due_date, created_by, assigned_to]
-    );
-
-    res.status(201).json({
-      message: "Task created successfully",
-      task_id: result.insertId
-    });
-  } catch (err) {
-    console.error("Task creation error:", err.message);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 //status update
 router.patch("/:taskId/status", async (req, res) => {
   try {
@@ -51,7 +26,7 @@ router.patch("/:taskId/status", async (req, res) => {
   }
 });
 
-//update tasks
+//update task
 router.put("/:taskId", async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -69,7 +44,7 @@ router.put("/:taskId", async (req, res) => {
   }
 });
 
-//delete tasks
+//deelete a task
 router.delete("/:taskId", async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -96,6 +71,31 @@ router.get("/:userId", async (req, res) => {
     res.json(tasks);
   } catch (err) {
     console.error("Get tasks error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+//create a new task
+router.post("/", async (req, res) => {
+  try {
+    const { title, description, due_date, created_by, assigned_to } = req.body;
+
+    if (!title || !created_by || !assigned_to) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO tasks (title, description, due_date, created_by, assigned_to, status)
+       VALUES (?, ?, ?, ?, ?, 'NOT_STARTED')`,
+      [title, description, due_date, created_by, assigned_to]
+    );
+
+    res.status(201).json({
+      message: "Task created successfully",
+      task_id: result.insertId
+    });
+  } catch (err) {
+    console.error("Task creation error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
 });
